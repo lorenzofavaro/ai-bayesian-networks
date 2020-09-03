@@ -3,11 +3,12 @@ package utils;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.bayes.Node;
-import bayes.Inferences;
+import bayes.HeuristicsTypes;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.AbstractNode;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.graph.implementations.SingleNode;
+import org.graphstream.ui.swingViewer.Viewer;
 
 import java.util.*;
 
@@ -15,24 +16,25 @@ public class MoralGraph extends SingleGraph {
 
     private final BayesianNetwork bayesianNetwork;
     private final List<RandomVariable> variables;
-    private Inferences.Heuristics heuristicType;
-    private PriorityQueue<MoralNode> variablesQueue =
-            new PriorityQueue<>(Comparator.comparingInt(o -> o.calculateHeuristics(heuristicType)));
+    private final HeuristicsTypes.Heuristics heuristicsType;
+    private final PriorityQueue<MoralNode> variablesQueue;
 
 
-    public MoralGraph(BayesianNetwork bayesianNetwork, List<RandomVariable> variables, Inferences.Heuristics heuristicsType) {
+    public MoralGraph(BayesianNetwork bayesianNetwork, List<RandomVariable> variables, HeuristicsTypes.Heuristics heuristicsType) {
         super("MG", true, false);
         this.bayesianNetwork = bayesianNetwork;
         this.variables = variables;
-        this.heuristicType = heuristicsType;
+        this.heuristicsType = heuristicsType;
+        variablesQueue = new PriorityQueue<>(Comparator.comparingInt(o -> o.calculateHeuristics(this.heuristicsType)));
 
         addAttribute("ui.stylesheet", "node { size: 10px, 15px; fill-color: blue; stroke-mode: plain; text-alignment: above; text-size: 25px;}");
 
         setupGraph();
         setupQueue();
+
     }
 
-    private void setupGraph(){
+    private void setupGraph() {
         for (RandomVariable var : variables) {
 
             // Aggiunta nodi
@@ -53,7 +55,7 @@ public class MoralGraph extends SingleGraph {
         }
     }
 
-    private void setupQueue(){
+    private void setupQueue() {
         variablesQueue.addAll(getNodeSet());
     }
 
@@ -89,25 +91,46 @@ public class MoralGraph extends SingleGraph {
         return getNode(randomVariable.getName());
     }
 
-    public List<RandomVariable> getVariables(Boolean showMoralGraph, int delay) {
+    public List<RandomVariable> getOrderedVariables(Boolean showMoralGraph, int delay) {
         ArrayList<RandomVariable> variables = new ArrayList<>();
+        Viewer v = null;
+
         if (showMoralGraph) {
-            display();
+            v = display();
         }
 
+        while (!variablesQueue.isEmpty()) {
+            MoralNode head = variablesQueue.poll();
+            variables.add(head.getRandomVariable());
+            removeNode(head);
+
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(showMoralGraph) {
+            v.close();
+        }
+        
+        return variables;
     }
 
     public static class MoralNode extends SingleNode {
         private int heuristicsValue = -1;
         private RandomVariable randomVariable;
+        private final MoralGraph moralGraph;
 
         protected MoralNode(AbstractGraph graph, String id) {
             super(graph, id);
+            this.moralGraph = (MoralGraph) graph;
         }
 
-        public int calculateHeuristics(Inferences.Heuristics heuristicsType) {
+        public int calculateHeuristics(HeuristicsTypes.Heuristics heuristicsType) {
             if (heuristicsValue == -1) {
-                heuristicsValue = Inferences.calculateHeuristics(heuristicsType);
+                heuristicsValue = HeuristicsTypes.calculateHeuristics(heuristicsType, this, moralGraph.variables.indexOf(getRandomVariable()));
             }
             return heuristicsValue;
         }
