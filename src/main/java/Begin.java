@@ -23,8 +23,8 @@ public class Begin {
 
         CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showMoralGraph, delay);
 
-        RandomVariable query = variables.get(0);
-        RandomVariable evidence1 = variables.get(variables.size() - 1);
+        RandomVariable query = variables.get(3);
+        RandomVariable evidence1 = variables.get(2);
         System.out.println("query: " + query + "\nevidence1: " + evidence1);
 
         RandomVariable[] queriesVariables = new RandomVariable[1];

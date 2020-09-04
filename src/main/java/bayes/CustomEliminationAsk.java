@@ -41,19 +41,43 @@ public class CustomEliminationAsk extends EliminationAsk {
         super.calculateVariables(X, e, bn, hidden, bnVARS);
 
         List<RandomVariable> mainVariables = new ArrayList<>(Arrays.asList(X));
+        List<RandomVariable> evidenceVariables = new ArrayList<>();
 
         for (AssignmentProposition a : e) {
-            mainVariables.add(a.getTermVariable());
+            evidenceVariables.add(a.getTermVariable());
         }
 
+        mainVariables.addAll(evidenceVariables);
+
+        for(RandomVariable var : notAncestorsOf(mainVariables, bn)){
+            System.out.println(var.getName());
+        }
         // Pruning nodi non antenati di {X U e}
         hidden.removeAll(notAncestorsOf(mainVariables, bn));
         bnVARS.removeAll(notAncestorsOf(mainVariables, bn));
 
+        // Pruning nodi m-separati
+        for (RandomVariable x : X) {
+            for (RandomVariable evidence : evidenceVariables) {
+                hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)));
+                bnVARS.removeIf(v -> (isMSeparated(v, x, evidence, bn)));
+
+            }
+        }
+    }
+
+    private Boolean isMSeparated(RandomVariable variable, RandomVariable x, RandomVariable e, BayesianNetwork bn) {
+        List<RandomVariable> query = new ArrayList<>();
+        query.add(x);
+
+        List<RandomVariable> evidence = new ArrayList<>();
+        evidence.add(e);
+
+        return AncestorsOf(query, bn).contains(e) && AncestorsOf(evidence, bn).contains(variable);
     }
 
     private Set<RandomVariable> notAncestorsOf(List<RandomVariable> mainVariables, BayesianNetwork bn) {
-        Set<RandomVariable> ancestors = AncestorsOf(bn, mainVariables);
+        Set<RandomVariable> ancestors = AncestorsOf(mainVariables, bn);
 
         Set<RandomVariable> notAncestors = new HashSet<>(bn.getVariablesInTopologicalOrder());
         notAncestors.removeIf(ancestors::contains);
@@ -62,19 +86,19 @@ public class CustomEliminationAsk extends EliminationAsk {
 
     }
 
-    private Set<RandomVariable> AncestorsOf(BayesianNetwork bn, List<RandomVariable> ancestors) {
+    private Set<RandomVariable> AncestorsOf(List<RandomVariable> variables, BayesianNetwork bn) {
 
-        Set<RandomVariable> result = new HashSet<>(ancestors);
+        Set<RandomVariable> result = new HashSet<>(variables);
 
-        for (RandomVariable var : ancestors) {
+        for (RandomVariable var : variables) {
 
             List<RandomVariable> ancestorsVariables = new ArrayList<>();
 
-            for (Node n: bn.getNode(var).getParents()){
+            for (Node n : bn.getNode(var).getParents()) {
                 ancestorsVariables.add(n.getRandomVariable());
             }
 
-            result.addAll(AncestorsOf(bn, ancestorsVariables));
+            result.addAll(AncestorsOf(ancestorsVariables, bn));
         }
 
         return result;

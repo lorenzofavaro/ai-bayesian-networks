@@ -48,7 +48,7 @@ public class MoralGraph extends SingleGraph {
 
             // Aggiunta archi "padre-figlio"
             for (Node n : parents) {
-                if (!getNode(var).hasEdgeBetween(getNode(n.getRandomVariable()))) {
+                if (variables.contains(n.getRandomVariable()) && !getNode(var).hasEdgeBetween(getNode(n.getRandomVariable()))) {
                     addEdge(var.getName() + "--" + n.getRandomVariable().getName(), getNode(var), getNode(n.getRandomVariable()), false);
                 }
             }
@@ -144,7 +144,7 @@ public class MoralGraph extends SingleGraph {
         }
 
         Boolean hasEdgeBetween(MoralNode node) {
-            return hasEdgeBetween(node.getId());
+            return node != null && hasEdgeBetween(node.getId());
         }
     }
 }
