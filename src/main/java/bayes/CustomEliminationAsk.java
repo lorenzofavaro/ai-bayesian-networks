@@ -49,9 +49,6 @@ public class CustomEliminationAsk extends EliminationAsk {
 
         mainVariables.addAll(evidenceVariables);
 
-        for(RandomVariable var : notAncestorsOf(mainVariables, bn)){
-            System.out.println(var.getName());
-        }
         // Pruning nodi non antenati di {X U e}
         hidden.removeAll(notAncestorsOf(mainVariables, bn));
         bnVARS.removeAll(notAncestorsOf(mainVariables, bn));
