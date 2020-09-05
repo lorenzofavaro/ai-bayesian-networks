@@ -1,16 +1,14 @@
 package bayes;
 
 import aima.core.probability.CategoricalDistribution;
-import aima.core.probability.Factor;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
-import aima.core.probability.bayes.FiniteNode;
 import aima.core.probability.bayes.Node;
 import aima.core.probability.bayes.exact.EliminationAsk;
-import aima.core.probability.bayes.impl.CPT;
-import aima.core.probability.bayes.impl.FullCPTNode;
+import bayes.CustomNode;
 import aima.core.probability.proposition.AssignmentProposition;
 import aima.core.probability.util.ProbabilityTable;
+import utils.HeuristicsTypes;
 import utils.InteractionGraph;
 
 import java.util.*;
@@ -38,13 +36,14 @@ public class CustomEliminationAsk extends EliminationAsk {
         return super.eliminationAsk(X, e, bn);
     }
 
+    @Override
+    public CategoricalDistribution ask(RandomVariable[] X, AssignmentProposition[] observedEvidence, BayesianNetwork bn) {
+        return this.eliminationAsk(X, observedEvidence, bn);
+    }
 
     @Override
     protected List<RandomVariable> order(BayesianNetwork bn, Collection<RandomVariable> vars) {
-        List<RandomVariable> vs = new InteractionGraph(bn, (List<RandomVariable>) vars, heuristics).getOrderedVariables(showInteractionGraph, delay);
-        for (RandomVariable v : vs)
-            System.out.println(v.getName());
-        return vs;
+        return new InteractionGraph(bn, (List<RandomVariable>) vars, heuristics).getOrderedVariables(showInteractionGraph, delay);
     }
 
     @Override
@@ -67,15 +66,15 @@ public class CustomEliminationAsk extends EliminationAsk {
         for (RandomVariable x : X) {
             for (AssignmentProposition assignmentProposition : e) {
                 RandomVariable evidence = assignmentProposition.getTermVariable();
-                hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)));
 
-                FullCPTNode n = new FullCPTNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
-                ((CustomBayesNet) bn).replaceNode(n);
+                if (hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)))) {
+                    CustomNode n = new CustomNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
+                    ((CustomBayesNet) bn).replaceNode(n);
+                }
             }
         }
 
         bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
-
     }
 
     private double[] getValuesForEvidence(Object value) {

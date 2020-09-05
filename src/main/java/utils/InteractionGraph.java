@@ -3,8 +3,6 @@ package utils;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.bayes.Node;
-import aima.core.probability.bayes.impl.FullCPTNode;
-import bayes.HeuristicsTypes;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.AbstractNode;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -41,7 +39,7 @@ public class InteractionGraph extends SingleGraph {
             // Aggiunta nodi
             InteractionNode interactionNode = addNode(var.getName());
             interactionNode.setRandomVariable(var);
-//            interactionNode.addAttribute("ui.label", interactionNode.getId());
+            interactionNode.addAttribute("ui.label", interactionNode.getId());
 
 
             // Aggiunta archi "padre-padre"

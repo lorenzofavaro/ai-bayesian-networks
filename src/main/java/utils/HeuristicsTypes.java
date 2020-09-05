@@ -1,6 +1,4 @@
-package bayes;
-
-import utils.InteractionGraph;
+package utils;
 
 import java.util.Iterator;
 
