@@ -1,4 +1,6 @@
-package bnparser;/*
+package utils.bnparser;
+
+/*
  * Encog(tm) Core v3.4 - Java Version
  * http://www.heatonresearch.com/encog/
  * https://github.com/encog/encog-java-core
@@ -86,11 +88,7 @@ public class BifReader {
 			SAXParser sp = spf.newSAXParser();
 			sp.parse(is, h);
 			return h.getNetwork();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (ParserConfigurationException ex) {
-			ex.printStackTrace();
-		} catch (SAXException ex) {
+		} catch (IOException | ParserConfigurationException | SAXException ex) {
 			ex.printStackTrace();
 		}
 		return null;

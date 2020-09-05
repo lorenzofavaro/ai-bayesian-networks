@@ -1,22 +1,22 @@
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.RandomVariable;
-import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.proposition.AssignmentProposition;
+import bayes.CustomBayesNet;
 import bayes.CustomEliminationAsk;
 import bayes.HeuristicsTypes;
-import bnparser.BifReader;
+import utils.bnparser.BifReader;
 
 import java.util.List;
 
 public class Begin {
 
     public static void main(String[] args) {
-        BayesianNetwork bayesianNetwork = BifReader.readBIF("src/main/resources/earthquake.xml");
+        CustomBayesNet bayesianNetwork = (CustomBayesNet) BifReader.readBIF("src/main/resources/earthquake.xml");
         List<RandomVariable> variables = bayesianNetwork.getVariablesInTopologicalOrder();
 
         HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.minFill;
-        Boolean showMoralGraph = false;
-        int delay = 1000;
+        Boolean showMoralGraph = true;
+        int delay = 3000;
 
         CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showMoralGraph, delay);
 
@@ -29,7 +29,12 @@ public class Begin {
         AssignmentProposition[] assignmentPropositions = new AssignmentProposition[1];
         assignmentPropositions[0] = new AssignmentProposition(evidence1, "True");
 
+        // Pruning archi
+//        bayesianNetwork.pruneEdges(assignmentPropositions);
+
         CategoricalDistribution cd = customElimination.eliminationAsk(queriesVariables, assignmentPropositions, bayesianNetwork);
+
+        // Output
 
         System.out.print("P( ");
         for(int i = 0; i < queriesVariables.length; i++) {

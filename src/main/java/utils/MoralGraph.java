@@ -37,6 +37,7 @@ public class MoralGraph extends SingleGraph {
     private void setupGraph() {
         for (RandomVariable var : variables) {
 
+            System.out.println("considerando " + var.getName());
             // Aggiunta nodi
             MoralNode moralNode = addNode(var.getName());
             moralNode.setRandomVariable(var);
@@ -44,14 +45,18 @@ public class MoralGraph extends SingleGraph {
 
             // Aggiunta archi "parent-parent"
             HashSet<Node> parents = new HashSet<>(bayesianNetwork.getNode(var).getParents());
-            bindParents(parents);
+            parents.removeIf(v -> !variables.contains(v.getRandomVariable()));
+            if (parents.size() > 1) {
+                bindParents(new ArrayList<>(parents));
+            }
 
             // Aggiunta archi "padre-figlio"
             for (Node n : parents) {
-                if (variables.contains(n.getRandomVariable()) && !getNode(var).hasEdgeBetween(getNode(n.getRandomVariable()))) {
+                if (!getNode(var).hasEdgeBetween(getNode(n.getRandomVariable()))) {
                     addEdge(var.getName() + "--" + n.getRandomVariable().getName(), getNode(var), getNode(n.getRandomVariable()), false);
                 }
             }
+
         }
     }
 
@@ -59,18 +64,22 @@ public class MoralGraph extends SingleGraph {
         variablesQueue.addAll(getNodeSet());
     }
 
-    private void bindParents(HashSet<Node> parents) {
+    private void bindParents(List<Node> parents) {
         for (int i = 0; i < parents.size(); i++) {
             for (int j = 0; j < parents.size(); j++) {
 
-                RandomVariable var1 = variables.get(i);
-                RandomVariable var2 = variables.get(j);
+                if (i != j) {
 
-                MoralNode node1 = getNode(var1);
-                MoralNode node2 = getNode(var2);
+                    RandomVariable var1 = parents.get(i).getRandomVariable();
+                    RandomVariable var2 = parents.get(j).getRandomVariable();
 
-                if (i != j && !node1.hasEdgeBetween(node2)) {
-                    addEdge(var1.getName() + "--" + var2.getName(), node1, node2, false);
+                    MoralNode moralNode1 = getNode(var1);
+                    MoralNode moralNode2 = getNode(var2);
+
+                    if (!moralNode1.hasEdgeBetween(moralNode2)) {
+                        addEdge(var1.getName() + "--" + var2.getName(), moralNode1, moralNode2, false);
+                    }
+
                 }
             }
         }
@@ -97,6 +106,11 @@ public class MoralGraph extends SingleGraph {
 
         if (showMoralGraph) {
             v = display();
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         while (!variablesQueue.isEmpty()) {
@@ -111,10 +125,10 @@ public class MoralGraph extends SingleGraph {
             }
         }
 
-        if(showMoralGraph) {
+        if (showMoralGraph) {
             v.close();
         }
-        
+
         return variables;
     }
 

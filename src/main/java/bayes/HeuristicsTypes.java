@@ -8,19 +8,11 @@ public class HeuristicsTypes {
     public enum Heuristics {minFill, minDegree, reverse}
 
     public static int calculateHeuristics(Heuristics heuristics, MoralGraph.MoralNode moralNode, int position) {
-        int result = 0;
-        switch (heuristics) {
-
-            case minFill:
-                return minFillHeuristics(moralNode);
-
-            case minDegree:
-                return minDegreeHeuristics(moralNode);
-
-            case reverse:
-                return -position;
-        }
-        return result;
+        return switch (heuristics) {
+            case minFill -> minFillHeuristics(moralNode);
+            case minDegree -> minDegreeHeuristics(moralNode);
+            case reverse -> -position;
+        };
     }
 
     private static int minFillHeuristics(MoralGraph.MoralNode moralNode) {

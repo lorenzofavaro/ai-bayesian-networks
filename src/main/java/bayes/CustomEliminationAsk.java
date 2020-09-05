@@ -11,9 +11,9 @@ import utils.MoralGraph;
 import java.util.*;
 
 public class CustomEliminationAsk extends EliminationAsk {
-    private HeuristicsTypes.Heuristics heuristics;
-    private Boolean showMoralGraph;
-    private int delay;
+    private final HeuristicsTypes.Heuristics heuristics;
+    private final Boolean showMoralGraph;
+    private final int delay;
 
     public CustomEliminationAsk(HeuristicsTypes.Heuristics heuristics, Boolean showMoralGraph, int delay) {
         this.heuristics = heuristics;
@@ -40,27 +40,26 @@ public class CustomEliminationAsk extends EliminationAsk {
     protected void calculateVariables(RandomVariable[] X, AssignmentProposition[] e, BayesianNetwork bn, Set<RandomVariable> hidden, Collection<RandomVariable> bnVARS) {
         super.calculateVariables(X, e, bn, hidden, bnVARS);
 
-        List<RandomVariable> mainVariables = new ArrayList<>(Arrays.asList(X));
         List<RandomVariable> evidenceVariables = new ArrayList<>();
-
         for (AssignmentProposition a : e) {
             evidenceVariables.add(a.getTermVariable());
         }
 
+        List<RandomVariable> mainVariables = new ArrayList<>();
+        mainVariables.addAll(Arrays.asList(X));
         mainVariables.addAll(evidenceVariables);
 
         // Pruning nodi non antenati di {X U e}
         hidden.removeAll(notAncestorsOf(mainVariables, bn));
-        bnVARS.removeAll(notAncestorsOf(mainVariables, bn));
 
-        // Pruning nodi m-separati
+        // Pruning nodi m-separati da X tramite E
         for (RandomVariable x : X) {
             for (RandomVariable evidence : evidenceVariables) {
                 hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)));
-                bnVARS.removeIf(v -> (isMSeparated(v, x, evidence, bn)));
-
             }
         }
+
+        bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
     }
 
     private Boolean isMSeparated(RandomVariable variable, RandomVariable x, RandomVariable e, BayesianNetwork bn) {

@@ -1,4 +1,6 @@
-package bnparser;/*
+package utils.bnparser;
+
+/*
  * Encog(tm) Core v3.4 - Java Version
  * http://www.heatonresearch.com/encog/
  * https://github.com/encog/encog-java-core
@@ -28,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import bayes.CustomBayesNet;
 import bnparser.bif.BIFDefinition;
 import bnparser.bif.BIFVariable;
 import bnparser.bif.FileSection;
@@ -329,7 +332,7 @@ public class MyBIFHandler extends DefaultHandler {
 
 		}
 
-		this.network = new BayesNet(rootNodes.toArray(new FullCPTNode[rootNodes.size()]));
+		this.network = new CustomBayesNet(rootNodes.toArray(new FullCPTNode[rootNodes.size()]));
 	}
 
 	private BIFDefinition searchBIFDef(String rvName) {
