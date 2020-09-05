@@ -44,4 +44,8 @@ public class CustomBayesNet extends BayesNet {
         }
     }
 
+    public void replaceNode(FullCPTNode node){
+        varToNodeMap.replace(node.getRandomVariable(), node);
+    }
+
 }

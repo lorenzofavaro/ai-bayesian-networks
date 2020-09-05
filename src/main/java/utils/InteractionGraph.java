@@ -3,6 +3,7 @@ package utils;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.bayes.Node;
+import aima.core.probability.bayes.impl.FullCPTNode;
 import bayes.HeuristicsTypes;
 import org.graphstream.graph.implementations.AbstractGraph;
 import org.graphstream.graph.implementations.AbstractNode;
@@ -12,15 +13,15 @@ import org.graphstream.ui.swingViewer.Viewer;
 
 import java.util.*;
 
-public class MoralGraph extends SingleGraph {
+public class InteractionGraph extends SingleGraph {
 
     private final BayesianNetwork bayesianNetwork;
     private final List<RandomVariable> variables;
     private final HeuristicsTypes.Heuristics heuristicsType;
-    private final PriorityQueue<MoralNode> variablesQueue;
+    private final PriorityQueue<InteractionNode> variablesQueue;
 
 
-    public MoralGraph(BayesianNetwork bayesianNetwork, List<RandomVariable> variables, HeuristicsTypes.Heuristics heuristicsType) {
+    public InteractionGraph(BayesianNetwork bayesianNetwork, List<RandomVariable> variables, HeuristicsTypes.Heuristics heuristicsType) {
         super("MG", true, false);
         this.bayesianNetwork = bayesianNetwork;
         this.variables = variables;
@@ -37,17 +38,17 @@ public class MoralGraph extends SingleGraph {
     private void setupGraph() {
         for (RandomVariable var : variables) {
 
-            System.out.println("considerando " + var.getName());
             // Aggiunta nodi
-            MoralNode moralNode = addNode(var.getName());
-            moralNode.setRandomVariable(var);
-            moralNode.addAttribute("ui.label", moralNode.getId());
+            InteractionNode interactionNode = addNode(var.getName());
+            interactionNode.setRandomVariable(var);
+//            interactionNode.addAttribute("ui.label", interactionNode.getId());
 
-            // Aggiunta archi "parent-parent"
+
+            // Aggiunta archi "padre-padre"
             HashSet<Node> parents = new HashSet<>(bayesianNetwork.getNode(var).getParents());
             parents.removeIf(v -> !variables.contains(v.getRandomVariable()));
             if (parents.size() > 1) {
-                bindParents(new ArrayList<>(parents));
+                bindNodes(new ArrayList<>(parents));
             }
 
             // Aggiunta archi "padre-figlio"
@@ -64,20 +65,20 @@ public class MoralGraph extends SingleGraph {
         variablesQueue.addAll(getNodeSet());
     }
 
-    private void bindParents(List<Node> parents) {
-        for (int i = 0; i < parents.size(); i++) {
-            for (int j = 0; j < parents.size(); j++) {
+    private void bindNodes(List<Node> nodes) {
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = 0; j < nodes.size(); j++) {
 
                 if (i != j) {
 
-                    RandomVariable var1 = parents.get(i).getRandomVariable();
-                    RandomVariable var2 = parents.get(j).getRandomVariable();
+                    RandomVariable var1 = nodes.get(i).getRandomVariable();
+                    RandomVariable var2 = nodes.get(j).getRandomVariable();
 
-                    MoralNode moralNode1 = getNode(var1);
-                    MoralNode moralNode2 = getNode(var2);
+                    InteractionNode interactionNode1 = getNode(var1);
+                    InteractionNode interactionNode2 = getNode(var2);
 
-                    if (!moralNode1.hasEdgeBetween(moralNode2)) {
-                        addEdge(var1.getName() + "--" + var2.getName(), moralNode1, moralNode2, false);
+                    if (!interactionNode1.hasEdgeBetween(interactionNode2)) {
+                        addEdge(var1.getName() + "--" + var2.getName(), interactionNode1, interactionNode2, false);
                     }
 
                 }
@@ -91,12 +92,12 @@ public class MoralGraph extends SingleGraph {
         if (node != null) {
             return (T) node;
         }
-        node = new MoralNode(this, nodeId);
+        node = new InteractionNode(this, nodeId);
         addNodeCallback(node);
         return (T) node;
     }
 
-    private MoralNode getNode(RandomVariable randomVariable) {
+    private InteractionNode getNode(RandomVariable randomVariable) {
         return getNode(randomVariable.getName());
     }
 
@@ -114,10 +115,27 @@ public class MoralGraph extends SingleGraph {
         }
 
         while (!variablesQueue.isEmpty()) {
-            MoralNode head = variablesQueue.poll();
+            InteractionNode head = variablesQueue.poll();
             variables.add(head.getRandomVariable());
-            removeNode(head);
 
+            Iterator<InteractionNode> iterator = head.getNeighborNodeIterator();
+            List<Node> neighbors = new ArrayList<>();
+            while (iterator.hasNext()) {
+                neighbors.add(bayesianNetwork.getNode(iterator.next().getRandomVariable()));
+            }
+            if (neighbors.size() > 1) {
+                bindNodes(new ArrayList<>(neighbors));
+
+                iterator = head.getNeighborNodeIterator();
+                // Ricalcolo priorità
+                while (iterator.hasNext()) {
+                    InteractionNode node = iterator.next();
+                    variablesQueue.remove(node);
+                    variablesQueue.add(node);
+                }
+            }
+
+            removeNode(head);
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
@@ -132,19 +150,19 @@ public class MoralGraph extends SingleGraph {
         return variables;
     }
 
-    public static class MoralNode extends SingleNode {
+    public static class InteractionNode extends SingleNode {
         private int heuristicsValue = -1;
         private RandomVariable randomVariable;
-        private final MoralGraph moralGraph;
+        private final InteractionGraph interactionGraph;
 
-        protected MoralNode(AbstractGraph graph, String id) {
+        protected InteractionNode(AbstractGraph graph, String id) {
             super(graph, id);
-            this.moralGraph = (MoralGraph) graph;
+            this.interactionGraph = (InteractionGraph) graph;
         }
 
         public int calculateHeuristics(HeuristicsTypes.Heuristics heuristicsType) {
             if (heuristicsValue == -1) {
-                heuristicsValue = HeuristicsTypes.calculateHeuristics(heuristicsType, this, moralGraph.variables.indexOf(getRandomVariable()));
+                heuristicsValue = HeuristicsTypes.calculateHeuristics(heuristicsType, this, interactionGraph.variables.indexOf(getRandomVariable()));
             }
             return heuristicsValue;
         }
@@ -157,7 +175,7 @@ public class MoralGraph extends SingleGraph {
             this.randomVariable = var;
         }
 
-        Boolean hasEdgeBetween(MoralNode node) {
+        Boolean hasEdgeBetween(InteractionNode node) {
             return node != null && hasEdgeBetween(node.getId());
         }
     }

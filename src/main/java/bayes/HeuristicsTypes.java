@@ -1,31 +1,32 @@
 package bayes;
 
-import utils.MoralGraph;
+import utils.InteractionGraph;
 
 import java.util.Iterator;
 
 public class HeuristicsTypes {
-    public enum Heuristics {minFill, minDegree, reverse}
+    public enum Heuristics {minFill, minDegree, reverse, topological}
 
-    public static int calculateHeuristics(Heuristics heuristics, MoralGraph.MoralNode moralNode, int position) {
+    public static int calculateHeuristics(Heuristics heuristics, InteractionGraph.InteractionNode interactionNode, int position) {
         return switch (heuristics) {
-            case minFill -> minFillHeuristics(moralNode);
-            case minDegree -> minDegreeHeuristics(moralNode);
+            case minFill -> minFillHeuristics(interactionNode);
+            case minDegree -> minDegreeHeuristics(interactionNode);
             case reverse -> -position;
+            case topological -> position;
         };
     }
 
-    private static int minFillHeuristics(MoralGraph.MoralNode moralNode) {
-        Iterator<MoralGraph.MoralNode> iterator1 = moralNode.getNeighborNodeIterator();
-        Iterator<MoralGraph.MoralNode> iterator2;
+    private static int minFillHeuristics(InteractionGraph.InteractionNode interactionNode) {
+        Iterator<InteractionGraph.InteractionNode> iterator1 = interactionNode.getNeighborNodeIterator();
+        Iterator<InteractionGraph.InteractionNode> iterator2;
 
         int tot = 0;
         while (iterator1.hasNext()) {
-            MoralGraph.MoralNode node1 = iterator1.next();
+            InteractionGraph.InteractionNode node1 = iterator1.next();
 
-            iterator2 = moralNode.getNeighborNodeIterator();
+            iterator2 = interactionNode.getNeighborNodeIterator();
             while (iterator2.hasNext()){
-                MoralGraph.MoralNode node2 = iterator2.next();
+                InteractionGraph.InteractionNode node2 = iterator2.next();
 
                 if(node1 != node2 && !node1.hasEdgeBetween(node2)){
                     tot++;
@@ -36,7 +37,7 @@ public class HeuristicsTypes {
         return tot;
     }
 
-    private static int minDegreeHeuristics(MoralGraph.MoralNode moralNode) {
-        return moralNode.getEdgeSet().size();
+    private static int minDegreeHeuristics(InteractionGraph.InteractionNode interactionNode) {
+        return interactionNode.getEdgeSet().size();
     }
 }

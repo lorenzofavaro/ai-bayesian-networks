@@ -14,25 +14,25 @@ public class Begin {
         CustomBayesNet bayesianNetwork = (CustomBayesNet) BifReader.readBIF("src/main/resources/earthquake.xml");
         List<RandomVariable> variables = bayesianNetwork.getVariablesInTopologicalOrder();
 
-        HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.minFill;
-        Boolean showMoralGraph = true;
+        HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.reverse;
+        Boolean showInteractionGraph = false;
         int delay = 3000;
 
-        CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showMoralGraph, delay);
+        CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showInteractionGraph, delay);
 
-        RandomVariable query = variables.get(3);
         RandomVariable evidence1 = variables.get(2);
+        RandomVariable query = variables.get(3);
 
         RandomVariable[] queriesVariables = new RandomVariable[1];
         queriesVariables[0] = query;
 
         AssignmentProposition[] assignmentPropositions = new AssignmentProposition[1];
-        assignmentPropositions[0] = new AssignmentProposition(evidence1, "True");
+        assignmentPropositions[0] = new AssignmentProposition(evidence1, Boolean.TRUE);
 
         // Pruning archi
 //        bayesianNetwork.pruneEdges(assignmentPropositions);
 
-        CategoricalDistribution cd = customElimination.eliminationAsk(queriesVariables, assignmentPropositions, bayesianNetwork);
+        CategoricalDistribution cd = customElimination.ask(queriesVariables, assignmentPropositions, bayesianNetwork);
 
         // Output
 

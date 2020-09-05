@@ -352,7 +352,7 @@ public class MyBIFHandler extends DefaultHandler {
 			boolean[] intDomainChecks = new boolean[v.getOptions().size()];
 			int i = 0;
 			for (String a : v.getOptions()) {
-				if (a.equals("TRUE") || a.equals("FALSE")) {
+				if (a.toLowerCase().equals("true") || a.toLowerCase().equals("false")) {
 					boolDomainCheck = true;
 					i++;
 					continue;
