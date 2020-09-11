@@ -1,11 +1,15 @@
-package bayes;
+package bayes.factory;
 
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.domain.BooleanDomain;
 import aima.core.probability.example.ExampleRV;
 import aima.core.probability.util.RandVar;
+import bayes.CustomBayesNet;
+import bayes.CustomNode;
 
-public class BayesNetsFactory {
+public class BNFactory {
+
+    @SuppressWarnings("unused")
     public static BayesianNetwork construct2FairDiceNetwork() {
         CustomNode dice1 = new CustomNode(ExampleRV.DICE_1_RV, new double[] {
                 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0,
@@ -17,6 +21,7 @@ public class BayesNetsFactory {
         return new CustomBayesNet(dice1, dice2);
     }
 
+    @SuppressWarnings("unused")
     public static BayesianNetwork constructToothacheCavityCatchNetwork() {
         CustomNode cavity = new CustomNode(ExampleRV.CAVITY_RV, new double[] {
                 0.2, 0.8 });
@@ -47,6 +52,7 @@ public class BayesNetsFactory {
         return new CustomBayesNet(cavity);
     }
 
+    @SuppressWarnings("unused")
     public static BayesianNetwork constructToothacheCavityCatchWeatherNetwork() {
         CustomNode cavity = new CustomNode(ExampleRV.CAVITY_RV, new double[] {
                 0.2, 0.8 });
@@ -87,6 +93,7 @@ public class BayesNetsFactory {
         return new CustomBayesNet(cavity, weather);
     }
 
+    @SuppressWarnings("unused")
     public static BayesianNetwork constructMeningitisStiffNeckNetwork() {
         CustomNode meningitis = new CustomNode(ExampleRV.MENINGITIS_RV,
                 new double[] { 1.0 / 50000.0, 1.0 - (1.0 / 50000.0) });
@@ -106,6 +113,7 @@ public class BayesNetsFactory {
         return new CustomBayesNet(meningitis);
     }
 
+    @SuppressWarnings("unused")
     public static BayesianNetwork constructBurglaryAlarmNetwork() {
         CustomNode burglary = new CustomNode(ExampleRV.BURGLARY_RV,
                 new double[] { 0.001, 0.999 });
@@ -153,7 +161,7 @@ public class BayesNetsFactory {
 
         return new CustomBayesNet(burglary, earthquake);
     }
-
+    @SuppressWarnings("unused")
     public static BayesianNetwork constructCloudySprinklerRainWetGrassSlipperyRoadNetwork() {
         CustomNode cloudy = new CustomNode(ExampleRV.CLOUDY_RV, new double[] {
                 0.5, 0.5 });
@@ -176,7 +184,6 @@ public class BayesNetsFactory {
                 0.2,
                 // Cloudy=false, Rain=false
                 0.8 }, cloudy);
-        @SuppressWarnings("unused")
         CustomNode wetGrass = new CustomNode(ExampleRV.WET_GRASS_RV,
                 new double[] {
                         // Sprinkler=true, Rain=true, WetGrass=true

@@ -4,12 +4,9 @@ import aima.core.probability.Factor;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.Node;
 import aima.core.probability.bayes.impl.BayesNet;
-import aima.core.probability.bayes.impl.FullCPTNode;
 import aima.core.probability.proposition.AssignmentProposition;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class CustomBayesNet extends BayesNet {
@@ -48,6 +45,14 @@ public class CustomBayesNet extends BayesNet {
 
             assignmentNode.removeChildren();
         }
+    }
+
+    protected Map<RandomVariable, Node> getVarToNodeMap (){
+        return varToNodeMap;
+    }
+
+    protected Set<Node> getRootNodes(){
+        return rootNodes;
     }
 
     public void replaceNode(CustomNode node){

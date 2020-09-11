@@ -5,17 +5,13 @@ import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.bayes.Node;
 import aima.core.probability.bayes.exact.EliminationAsk;
-import bayes.CustomNode;
 import aima.core.probability.proposition.AssignmentProposition;
-import aima.core.probability.util.ProbabilityTable;
 import utils.HeuristicsTypes;
 import utils.InteractionGraph;
 
 import java.util.*;
 
 public class CustomEliminationAsk extends EliminationAsk {
-    private static final ProbabilityTable _identity = new ProbabilityTable(
-            new double[]{1.0});
     private final HeuristicsTypes.Heuristics heuristics;
     private final Boolean showInteractionGraph;
     private final int delay;
@@ -26,12 +22,21 @@ public class CustomEliminationAsk extends EliminationAsk {
         this.delay = delay;
     }
 
+    public CustomEliminationAsk() {
+        this.heuristics = HeuristicsTypes.Heuristics.reverse;
+        this.showInteractionGraph = false;
+        this.delay = 0;
+    }
+
     @Override
     public CategoricalDistribution eliminationAsk(RandomVariable[] X, AssignmentProposition[] e, BayesianNetwork bn) {
         if (X.length == 0)
             throw new IllegalArgumentException("Query non valida");
         if (!bn.getVariablesInTopologicalOrder().containsAll(Arrays.asList(X.clone())))
             throw new IllegalArgumentException("Variabili non presenti nella rete");
+
+        // Pruning archi irrilevanti
+        ((CustomBayesNet) bn).pruneEdges(e);
 
         return super.eliminationAsk(X, e, bn);
     }

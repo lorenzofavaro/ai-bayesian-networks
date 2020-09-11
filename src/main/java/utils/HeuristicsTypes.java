@@ -3,14 +3,13 @@ package utils;
 import java.util.Iterator;
 
 public class HeuristicsTypes {
-    public enum Heuristics {minFill, minDegree, reverse, topological}
+    public enum Heuristics {minFill, minDegree, reverse}
 
     public static int calculateHeuristics(Heuristics heuristics, InteractionGraph.InteractionNode interactionNode, int position) {
         return switch (heuristics) {
             case minFill -> minFillHeuristics(interactionNode);
             case minDegree -> minDegreeHeuristics(interactionNode);
             case reverse -> -position;
-            case topological -> position;
         };
     }
 

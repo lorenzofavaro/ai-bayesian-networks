@@ -5,7 +5,6 @@ import aima.core.probability.bayes.ConditionalProbabilityDistribution;
 import aima.core.probability.bayes.ConditionalProbabilityTable;
 import aima.core.probability.bayes.FiniteNode;
 import aima.core.probability.bayes.Node;
-import aima.core.probability.bayes.impl.AbstractNode;
 import aima.core.probability.bayes.impl.CPT;
 
 import java.util.Collections;
@@ -17,7 +16,7 @@ public class CustomNode implements Node, FiniteNode {
     private final RandomVariable variable;
     private Set<Node> parents;
     private Set<Node> children;
-    private ConditionalProbabilityTable cpt;
+    private final ConditionalProbabilityTable cpt;
 
     public CustomNode(RandomVariable var, double[] distribution) {
         this(var, distribution, (Node[]) null);
@@ -68,14 +67,6 @@ public class CustomNode implements Node, FiniteNode {
         return parents;
     }
 
-    public void addParents(Set<Node> ps){
-        parents.addAll(ps);
-    }
-
-    public void removeParent(CustomNode node){
-        parents.remove(node);
-    }
-
     @Override
     public Set<Node> getChildren() {
         return children;
@@ -83,10 +74,6 @@ public class CustomNode implements Node, FiniteNode {
 
     public void addChildren(Set<Node> cs){
         children.addAll(cs);
-    }
-
-    public void removeChild(CustomNode node){
-        children.remove(node);
     }
 
     public void removeChildren(){

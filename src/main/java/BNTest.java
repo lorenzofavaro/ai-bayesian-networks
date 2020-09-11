@@ -1,28 +1,27 @@
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.RandomVariable;
-import aima.core.probability.example.BayesNetExampleFactory;
 import aima.core.probability.proposition.AssignmentProposition;
-import bayes.BayesNetsFactory;
+import bayes.factory.BNFactory;
 import bayes.CustomBayesNet;
 import bayes.CustomEliminationAsk;
 import utils.HeuristicsTypes;
 
 import java.util.List;
 
-public class Begin {
+public class BNTest {
 
     public static void main(String[] args) {
-        CustomBayesNet bayesianNetwork = (CustomBayesNet) BayesNetsFactory.constructCloudySprinklerRainWetGrassSlipperyRoadNetwork();
-        List<RandomVariable> variables = bayesianNetwork.getVariablesInTopologicalOrder();
+        CustomBayesNet net = (CustomBayesNet) BNFactory.constructCloudySprinklerRainWetGrassSlipperyRoadNetwork();
+        List<RandomVariable> variables = net.getVariablesInTopologicalOrder();
 
         HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.reverse;
-        Boolean showInteractionGraph = true;
-        int delay = 3000;
+        Boolean showInteractionGraph = false;
+        int delay = 2000;
 
         CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showInteractionGraph, delay);
 
-        RandomVariable evidence1 = variables.get(2);
-        RandomVariable query = variables.get(4);
+        RandomVariable evidence1 = variables.get(0);
+        RandomVariable query = variables.get(3);
 
         RandomVariable[] queriesVariables = new RandomVariable[1];
         queriesVariables[0] = query;
@@ -30,10 +29,8 @@ public class Begin {
         AssignmentProposition[] assignmentPropositions = new AssignmentProposition[1];
         assignmentPropositions[0] = new AssignmentProposition(evidence1, Boolean.FALSE);
 
-        // Pruning archi
-        bayesianNetwork.pruneEdges(assignmentPropositions);
+        CategoricalDistribution cd = customElimination.ask(queriesVariables, assignmentPropositions, net);
 
-        CategoricalDistribution cd = customElimination.ask(queriesVariables, assignmentPropositions, bayesianNetwork);
 
         // Output
 

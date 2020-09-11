@@ -105,11 +105,7 @@ public class InteractionGraph extends SingleGraph {
 
         if (showMoralGraph) {
             v = display();
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            sleepforTime(delay);
         }
 
         while (!variablesQueue.isEmpty()) {
@@ -134,10 +130,9 @@ public class InteractionGraph extends SingleGraph {
             }
 
             removeNode(head);
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+            if (showMoralGraph) {
+                sleepforTime(delay);
             }
         }
 
@@ -146,6 +141,14 @@ public class InteractionGraph extends SingleGraph {
         }
 
         return variables;
+    }
+
+    private void sleepforTime(int delay){
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class InteractionNode extends SingleNode {
