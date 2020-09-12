@@ -80,6 +80,12 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
             CustomNode node = new CustomNode(x1, cd.getValues());
             newBeliefNodes.put(x1, node);
 
+            CPT cpt = (CPT) getNode(x0).getCPD();
+            double[] cptValues = getCPTValues(cpt);
+
+            System.out.println("Xt-1: " + Arrays.toString(cptValues)
+                      + "\nNuovo Xt-1: " + Arrays.toString(cd.getValues()));
+
             if (getNode(x0).getParents().isEmpty()) {
                 nextRootNodes.add(node);
             }
@@ -89,18 +95,17 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
         // il modello di transizione dei nodi precedenti
         for (RandomVariable oldVariable : X_1) {
 
-            Set<Node> parents = getNode(oldVariable).getParents();
-            List<Node> newParents = new ArrayList<>();
-
             RandVar newVar = getNewVar(oldVariable);
             X1_to_X2.put(oldVariable, newVar);
 
-            for (Node parent : parents) {
+            List<Node> newParents = new ArrayList<>();
+
+            for (Node parent : getNode(oldVariable).getParents()) {
                 RandomVariable parentVar = parent.getRandomVariable();
                 newParents.add(newBeliefNodes.get(X_0_to_X_1.get(parentVar)));
             }
 
-            addNewVar(newStateVariables, oldVariable, newParents, newVar);
+            addNewStateVariable(newStateVariables, oldVariable, newParents, newVar);
         }
 
         // Creazione di nuovi nodi di variabili di evidenza attraverso
@@ -117,13 +122,13 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
                 newParents.add(newStateVariables.get(X1_to_X2.get(parentVar)));
             }
 
-            addNewVar(newEvidences, oldVariable, newParents, newVar);
+            addNewStateVariable(newEvidences, oldVariable, newParents, newVar);
         }
 
         updateNet(newBeliefNodes, newStateVariables, X1_to_X2, newEvidences, nextRootNodes);
     }
 
-    private void addNewVar(Map<RandomVariable, Node> newStateVariables, RandomVariable oldVariable, List<Node> newParents, RandVar newVar) {
+    private void addNewStateVariable(Map<RandomVariable, Node> newStateVariables, RandomVariable oldVariable, List<Node> newParents, RandVar newVar) {
         CPT cpt = (CPT) getNode(oldVariable).getCPD();
         double[] cptValues = getCPTValues(cpt);
 
