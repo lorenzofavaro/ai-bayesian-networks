@@ -1,17 +1,22 @@
 package bayes;
 
 import aima.core.probability.CategoricalDistribution;
+import aima.core.probability.Factor;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
+import aima.core.probability.bayes.FiniteNode;
 import aima.core.probability.bayes.Node;
 import aima.core.probability.bayes.exact.EliminationAsk;
 import aima.core.probability.proposition.AssignmentProposition;
+import aima.core.probability.util.ProbabilityTable;
 import utils.HeuristicsTypes;
 import utils.InteractionGraph;
 
 import java.util.*;
 
 public class CustomEliminationAsk extends EliminationAsk {
+    private static final ProbabilityTable _identity = new ProbabilityTable(
+            new double[] { 1.0 });
     private final HeuristicsTypes.Heuristics heuristics;
     private final Boolean showInteractionGraph;
     private final int delay;
@@ -35,14 +40,84 @@ public class CustomEliminationAsk extends EliminationAsk {
         if (!bn.getVariablesInTopologicalOrder().containsAll(Arrays.asList(X.clone())))
             throw new IllegalArgumentException("Variabili non presenti nella rete");
 
-        // Pruning archi irrilevanti
-        ((CustomBayesNet) bn).pruneEdges(e);
+        Set<RandomVariable> hidden = new HashSet<>();
+        List<RandomVariable> VARS = new ArrayList<>();
+        calculateVariables(X, e, bn, hidden, VARS);
 
-        return super.eliminationAsk(X, e, bn);
+        // factors <- []
+        List<Factor> factors = new ArrayList<Factor>();
+        // for each var in ORDER(bn.VARS) do
+        for (RandomVariable var : order(bn, VARS)) {
+            // factors <- [MAKE-FACTOR(var, e) | factors]
+            factors.add(0, makeFactor(var, e, bn));
+        }
+
+        // if var is hidden variable then factors <- SUM-OUT(var, factors)
+        for(RandomVariable var : super.order(bn, hidden)){
+            factors = sumOut(var, factors, bn);
+        }
+        // return NORMALIZE(POINTWISE-PRODUCT(factors))
+        Factor product = pointwiseProduct(factors);
+        // Note: Want to ensure the order of the product matches the
+        // query variables
+        return ((ProbabilityTable) product.pointwiseProductPOS(_identity, X))
+                .normalize();
+    }
+
+    private Factor makeFactor(RandomVariable var, AssignmentProposition[] e,
+                              BayesianNetwork bn) {
+
+        Node n = bn.getNode(var);
+        if (!(n instanceof FiniteNode)) {
+            throw new IllegalArgumentException(
+                    "Elimination-Ask only works with finite Nodes.");
+        }
+        FiniteNode fn = (FiniteNode) n;
+        List<AssignmentProposition> evidence = new ArrayList<AssignmentProposition>();
+        for (AssignmentProposition ap : e) {
+            if (fn.getCPT().contains(ap.getTermVariable())) {
+                evidence.add(ap);
+            }
+        }
+
+        return fn.getCPT().getFactorFor(
+                evidence.toArray(new AssignmentProposition[evidence.size()]));
+    }
+
+    private Factor pointwiseProduct(List<Factor> factors) {
+
+        Factor product = factors.get(0);
+        for (int i = 1; i < factors.size(); i++) {
+            product = product.pointwiseProduct(factors.get(i));
+        }
+
+        return product;
+    }
+
+    private List<Factor> sumOut(RandomVariable var, List<Factor> factors,
+                                BayesianNetwork bn) {
+        List<Factor> summedOutFactors = new ArrayList<Factor>();
+        List<Factor> toMultiply = new ArrayList<Factor>();
+        for (Factor f : factors) {
+            if (f.contains(var)) {
+                toMultiply.add(f);
+            } else {
+                // This factor does not contain the variable
+                // so no need to sum out - see AIMA3e pg. 527.
+                summedOutFactors.add(f);
+            }
+        }
+
+        summedOutFactors.add(pointwiseProduct(toMultiply).sumOut(var));
+
+        return summedOutFactors;
     }
 
     @Override
     public CategoricalDistribution ask(RandomVariable[] X, AssignmentProposition[] observedEvidence, BayesianNetwork bn) {
+        // Pruning archi irrilevanti
+        ((CustomBayesNet) bn).pruneEdges(observedEvidence);
+
         return this.eliminationAsk(X, observedEvidence, bn);
     }
 

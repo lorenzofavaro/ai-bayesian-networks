@@ -20,7 +20,7 @@ public class InteractionGraph extends SingleGraph {
 
 
     public InteractionGraph(BayesianNetwork bayesianNetwork, List<RandomVariable> variables, HeuristicsTypes.Heuristics heuristicsType) {
-        super("MG", true, false);
+        super("IG", true, false);
         this.bayesianNetwork = bayesianNetwork;
         this.variables = variables;
         this.heuristicsType = heuristicsType;

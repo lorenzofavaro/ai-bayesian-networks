@@ -23,7 +23,7 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
     private Map<RandomVariable, RandomVariable> X_0_to_X_1 = new LinkedHashMap<>();
     private Map<RandomVariable, RandomVariable> X_1_to_X_0 = new LinkedHashMap<>();
     private BayesianNetwork priorNetwork;
-    private List<RandomVariable> X_1_VariablesInTopologicalOrder = new ArrayList<>();
+    private final List<RandomVariable> X_1_VariablesInTopologicalOrder = new ArrayList<>();
 
     public CustomDynamicBayesNet(BayesianNetwork priorNetwork,
                                  Map<RandomVariable, RandomVariable> X_0_to_X_1,
@@ -41,8 +41,7 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
         }
         this.E_1.addAll(E_1);
 
-        // Assert the X_0, X_1, and E_1 sets are of expected sizes
-        Set<RandomVariable> combined = new LinkedHashSet<RandomVariable>();
+        Set<RandomVariable> combined = new LinkedHashSet<>();
         combined.addAll(X_0);
         combined.addAll(X_1);
         combined.addAll(E_1);
@@ -67,8 +66,7 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
 
         List<CustomNode> nextRootNodes = new ArrayList<>();
 
-        // Creazione nuovi belief nodes attraverso il
-        // modello di transizione e le variabili di evidenza
+        // Nuovi Belief Nodes
         for (Map.Entry<RandomVariable, RandomVariable> x0_x1 : X_0_to_X_1.entrySet()) {
 
             RandomVariable x0 = x0_x1.getKey();
@@ -84,15 +82,14 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
             double[] cptValues = getCPTValues(cpt);
 
             System.out.println("Xt-1: " + Arrays.toString(cptValues)
-                      + "\nNuovo Xt-1: " + Arrays.toString(cd.getValues()));
+                    + "\nNuovo Xt-1: " + Arrays.toString(cd.getValues()));
 
             if (getNode(x0).getParents().isEmpty()) {
                 nextRootNodes.add(node);
             }
         }
 
-        // Creazione nuovi nodi di variabili di stato attraverso
-        // il modello di transizione dei nodi precedenti
+        // Nuovi Nodi di Variabili di Stato
         for (RandomVariable oldVariable : X_1) {
 
             RandVar newVar = getNewVar(oldVariable);
@@ -105,11 +102,10 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
                 newParents.add(newBeliefNodes.get(X_0_to_X_1.get(parentVar)));
             }
 
-            addNewStateVariable(newStateVariables, oldVariable, newParents, newVar);
+            addNewVariable(newStateVariables, oldVariable, newParents, newVar);
         }
 
-        // Creazione di nuovi nodi di variabili di evidenza attraverso
-        // il sensor model dei nodi precedenti
+        // Nuovi Nodi di Variabili di Evidenza
         for (RandomVariable oldVariable : E_1) {
 
             Set<Node> parents = getNode(oldVariable).getParents();
@@ -122,17 +118,17 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
                 newParents.add(newStateVariables.get(X1_to_X2.get(parentVar)));
             }
 
-            addNewStateVariable(newEvidences, oldVariable, newParents, newVar);
+            addNewVariable(newEvidences, oldVariable, newParents, newVar);
         }
 
         updateNet(newBeliefNodes, newStateVariables, X1_to_X2, newEvidences, nextRootNodes);
     }
 
-    private void addNewStateVariable(Map<RandomVariable, Node> newStateVariables, RandomVariable oldVariable, List<Node> newParents, RandVar newVar) {
+    private void addNewVariable(Map<RandomVariable, Node> newVariables, RandomVariable oldVariable, List<Node> newParents, RandVar newVar) {
         CPT cpt = (CPT) getNode(oldVariable).getCPD();
         double[] cptValues = getCPTValues(cpt);
 
-        newStateVariables.put(newVar, new CustomNode(newVar, cptValues, newParents.toArray(new Node[0])));
+        newVariables.put(newVar, new CustomNode(newVar, cptValues, newParents.toArray(new Node[0])));
 
         System.out.println("OldVarName: " + oldVariable.getName() + "\n" +
                 "NewVarName: " + newVar.getName() + "\n" +
