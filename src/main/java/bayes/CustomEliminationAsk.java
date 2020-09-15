@@ -18,19 +18,19 @@ public class CustomEliminationAsk extends EliminationAsk {
     private static final ProbabilityTable _identity = new ProbabilityTable(
             new double[] { 1.0 });
     private final HeuristicsTypes.Heuristics heuristics;
-    private final Boolean showInteractionGraph;
-    private final int delay;
+    private final Boolean showGraph;
+    private final int waitTime;
 
-    public CustomEliminationAsk(HeuristicsTypes.Heuristics heuristics, Boolean showInteractionGraph, int delay) {
+    public CustomEliminationAsk(HeuristicsTypes.Heuristics heuristics, Boolean showGraph, int waitTime) {
         this.heuristics = heuristics;
-        this.showInteractionGraph = showInteractionGraph;
-        this.delay = delay;
+        this.showGraph = showGraph;
+        this.waitTime = waitTime;
     }
 
     public CustomEliminationAsk() {
         this.heuristics = HeuristicsTypes.Heuristics.reverse;
-        this.showInteractionGraph = false;
-        this.delay = 0;
+        this.showGraph = false;
+        this.waitTime = 0;
     }
 
     @Override
@@ -115,6 +115,7 @@ public class CustomEliminationAsk extends EliminationAsk {
 
     @Override
     public CategoricalDistribution ask(RandomVariable[] X, AssignmentProposition[] observedEvidence, BayesianNetwork bn) {
+
         // Pruning archi irrilevanti
         ((CustomBayesNet) bn).pruneEdges(observedEvidence);
 
@@ -123,7 +124,7 @@ public class CustomEliminationAsk extends EliminationAsk {
 
     @Override
     protected List<RandomVariable> order(BayesianNetwork bn, Collection<RandomVariable> vars) {
-        return new InteractionGraph(bn, (List<RandomVariable>) vars, heuristics).getOrderedVariables(showInteractionGraph, delay);
+        return new InteractionGraph(bn, (List<RandomVariable>) vars, heuristics).getOrderedVariables(showGraph, waitTime);
     }
 
     @Override
@@ -139,22 +140,22 @@ public class CustomEliminationAsk extends EliminationAsk {
         mainVariables.addAll(Arrays.asList(X));
         mainVariables.addAll(evidenceVariables);
 
-        // Pruning nodi non antenati di {X U e}
-        hidden.removeAll(notAncestorsOf(mainVariables, bn));
+            // Pruning nodi non antenati di {X U e}
+            hidden.removeAll(notAncestorsOf(mainVariables, bn));
 
-        // Pruning nodi m-separati da X tramite E
-        for (RandomVariable x : X) {
-            for (AssignmentProposition assignmentProposition : e) {
-                RandomVariable evidence = assignmentProposition.getTermVariable();
+            // Pruning nodi m-separati da X tramite E
+            for (RandomVariable x : X) {
+                for (AssignmentProposition assignmentProposition : e) {
+                    RandomVariable evidence = assignmentProposition.getTermVariable();
 
-                if (hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)))) {
-                    CustomNode n = new CustomNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
-                    ((CustomBayesNet) bn).replaceNode(n);
+                    if (hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)))) {
+                        CustomNode n = new CustomNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
+                        ((CustomBayesNet) bn).replaceNode(n);
+                    }
                 }
             }
-        }
 
-        bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
+            bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
     }
 
     private double[] getValuesForEvidence(Object value) {

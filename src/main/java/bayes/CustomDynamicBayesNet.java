@@ -11,9 +11,10 @@ import aima.core.probability.util.RandVar;
 import aima.core.util.SetOps;
 import com.codepoetics.protonpack.maps.MapStream;
 import org.apache.commons.lang3.ArrayUtils;
-import utils.HeuristicsTypes;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBayesianNetwork {
 
@@ -58,7 +59,7 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
     }
 
 
-    public void forward(AssignmentProposition[] propositions) {
+    public void forward(AssignmentProposition[] propositions, CustomEliminationAsk customEliminationAsk) {
         Map<RandomVariable, Node> newBeliefNodes = new HashMap<>();
         Map<RandomVariable, Node> newStateVariables = new HashMap<>();
         Map<RandomVariable, Node> newEvidences = new HashMap<>();
@@ -72,17 +73,15 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
             RandomVariable x0 = x0_x1.getKey();
             RandomVariable x1 = x0_x1.getValue();
 
-            CategoricalDistribution cd = new CustomEliminationAsk(HeuristicsTypes.Heuristics.reverse,
-                    true, 1000).
-                    ask(new RandomVariable[]{x1}, propositions, this);
+            CategoricalDistribution cd = customEliminationAsk.ask(new RandomVariable[]{x1}, propositions, this);
             CustomNode node = new CustomNode(x1, cd.getValues());
             newBeliefNodes.put(x1, node);
 
             CPT cpt = (CPT) getNode(x0).getCPD();
             double[] cptValues = getCPTValues(cpt);
 
-            System.out.println("Xt-1: " + Arrays.toString(cptValues)
-                    + "\nNuovo Xt-1: " + Arrays.toString(cd.getValues()));
+            System.out.println(x0.getName() + ": " + Arrays.toString(cptValues)
+                    + " --> " + x1.getName() + ": " + Arrays.toString(cd.getValues()) + "\n");
 
             if (getNode(x0).getParents().isEmpty()) {
                 nextRootNodes.add(node);
@@ -129,10 +128,6 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
         double[] cptValues = getCPTValues(cpt);
 
         newVariables.put(newVar, new CustomNode(newVar, cptValues, newParents.toArray(new Node[0])));
-
-        System.out.println("OldVarName: " + oldVariable.getName() + "\n" +
-                "NewVarName: " + newVar.getName() + "\n" +
-                "Cpt: " + Arrays.toString(cptValues));
     }
 
     private void updateNet(Map<RandomVariable, Node> newBeliefNodes,
@@ -195,14 +190,17 @@ public class CustomDynamicBayesNet extends CustomBayesNet implements DynamicBaye
     }
 
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private RandVar getNewVar(RandomVariable oldVariable) {
+        Pattern p = Pattern.compile("[0-9]+$");
         String name = oldVariable.getName();
-        char lastChar = name.charAt(name.length() - 1);
-        int lastCharNum = Character.getNumericValue(lastChar);
 
-        char newChar = Character.forDigit(++lastCharNum, 10);
+        Matcher m = p.matcher(name);
+        m.find();
+        int lastNum = Integer.parseInt(m.group());
+        lastNum++;
+        name = name.replaceAll(p.toString(), String.valueOf(lastNum));
 
-        name = name.replace(lastChar, newChar);
         return new RandVar(name, oldVariable.getDomain());
     }
 

@@ -1,4 +1,4 @@
-package bayes.factory;
+package factory;
 
 import aima.core.probability.bayes.BayesianNetwork;
 import aima.core.probability.domain.BooleanDomain;

@@ -1,7 +1,6 @@
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.proposition.AssignmentProposition;
-import bayes.factory.BNFactory;
 import bayes.CustomBayesNet;
 import bayes.CustomEliminationAsk;
 import utils.HeuristicsTypes;
@@ -14,31 +13,31 @@ public class BNTest {
 
     public static void main(String[] args) {
 
-        // Impostazioni
-        HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.minFill;
-        Boolean showInteractionGraph = false;
-        int delay = 1000;
+        HeuristicsTypes.Heuristics heuristics = HeuristicsTypes.Heuristics.minDegree;
+        Boolean showGraph = false;
+        int waitTime = 100;
 
-        // Caricamento Rete
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        CustomBayesNet net = (CustomBayesNet) BifReader.readBIF(classloader.getResourceAsStream("sat.xml"));
-//        CustomBayesNet net = (CustomBayesNet) BNFactory.constructToothacheCavityCatchNetwork();
+        CustomBayesNet net = (CustomBayesNet) BifReader.readBIF(classloader.getResourceAsStream("win95pts.xml"));
+//        bayes.CustomBayesNet net = (bayes.CustomBayesNet) BNFactory.constructToothacheCavityCatchNetwork();
 
         List<RandomVariable> variables = net.getVariablesInTopologicalOrder();
 
-        // Set variabili di query ed evidenza
-        RandomVariable query = variables.get(1);
+        RandomVariable query1 = variables.get(0);
+//        RandomVariable query2 = variables.get(9);
         RandomVariable[] queriesVariables = new RandomVariable[1];
-        queriesVariables[0] = query;
+        queriesVariables[0] = query1;
+//        queriesVariables[0] = query2;
 
-        RandomVariable evidence1 = variables.get(variables.size() - 1);
-        AssignmentProposition[] assignmentPropositions = new AssignmentProposition[1];
-        assignmentPropositions[0] = new AssignmentProposition(evidence1, Boolean.TRUE);
+        RandomVariable evidence1 = variables.get(variables.size() - 2);
+        RandomVariable evidence2 = variables.get(variables.size() - 1);
+        System.out.println(evidence1.getDomain());
+        System.out.println(evidence2.getDomain());
+        AssignmentProposition[] assignmentPropositions = new AssignmentProposition[2];
+        assignmentPropositions[0] = new AssignmentProposition(evidence1, "Yes");
+        assignmentPropositions[1] = new AssignmentProposition(evidence2, "No_Output");
 
-        System.out.println("evidenza: " + evidence1.getName() + "\nquery: " + query.getName());
-
-        // Elimination Ask
-        CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showInteractionGraph, delay);
+        CustomEliminationAsk customElimination = new CustomEliminationAsk(heuristics, showGraph, waitTime);
         long startTime = System.nanoTime();
         CategoricalDistribution cd = customElimination.ask(queriesVariables, assignmentPropositions, net);
         long endTime = System.nanoTime();
