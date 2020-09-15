@@ -1,4 +1,4 @@
-package utils.bnparser;
+package bnparser;
 
 /*
  * Encog(tm) Core v3.4 - Java Version
@@ -30,8 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import bayes.CustomBayesNet;
-import bayes.CustomNode;
+import custom.CustomBayesNet;
+import custom.CustomNode;
 import bnparser.bif.BIFDefinition;
 import bnparser.bif.BIFVariable;
 import bnparser.bif.FileSection;

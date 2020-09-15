@@ -1,4 +1,4 @@
-package bayes;
+package custom;
 
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.RandomVariable;

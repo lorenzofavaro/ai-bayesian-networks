@@ -1,9 +1,9 @@
 import aima.core.probability.RandomVariable;
 import aima.core.probability.proposition.AssignmentProposition;
-import bayes.CustomDynamicBayesNet;
-import bayes.CustomEliminationAsk;
+import custom.CustomDynamicBayesNet;
+import custom.CustomEliminationAsk;
 import factory.DBNFactory;
-import utils.HeuristicsTypes;
+import graph.HeuristicsTypes;
 
 import java.util.List;
 

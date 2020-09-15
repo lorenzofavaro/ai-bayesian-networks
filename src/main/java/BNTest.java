@@ -1,10 +1,10 @@
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.RandomVariable;
 import aima.core.probability.proposition.AssignmentProposition;
-import bayes.CustomBayesNet;
-import bayes.CustomEliminationAsk;
-import utils.HeuristicsTypes;
-import utils.bnparser.BifReader;
+import custom.CustomBayesNet;
+import custom.CustomEliminationAsk;
+import graph.HeuristicsTypes;
+import bnparser.BifReader;
 
 import java.util.List;
 

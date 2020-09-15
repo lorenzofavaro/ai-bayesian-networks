@@ -1,4 +1,4 @@
-package utils.bnparser;
+package bnparser;
 
 /*
  * Encog(tm) Core v3.4 - Java Version

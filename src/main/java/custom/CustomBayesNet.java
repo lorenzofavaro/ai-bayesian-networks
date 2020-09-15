@@ -1,4 +1,4 @@
-package bayes;
+package custom;
 
 import aima.core.probability.Factor;
 import aima.core.probability.RandomVariable;

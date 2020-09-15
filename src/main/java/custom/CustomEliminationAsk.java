@@ -1,4 +1,4 @@
-package bayes;
+package custom;
 
 import aima.core.probability.CategoricalDistribution;
 import aima.core.probability.Factor;
@@ -9,14 +9,13 @@ import aima.core.probability.bayes.Node;
 import aima.core.probability.bayes.exact.EliminationAsk;
 import aima.core.probability.proposition.AssignmentProposition;
 import aima.core.probability.util.ProbabilityTable;
-import utils.HeuristicsTypes;
-import utils.InteractionGraph;
+import graph.HeuristicsTypes;
+import graph.InteractionGraph;
 
 import java.util.*;
 
 public class CustomEliminationAsk extends EliminationAsk {
-    private static final ProbabilityTable _identity = new ProbabilityTable(
-            new double[] { 1.0 });
+    private static final ProbabilityTable _identity = new ProbabilityTable(new double[]{1.0});
     private final HeuristicsTypes.Heuristics heuristics;
     private final Boolean showGraph;
     private final int waitTime;
@@ -27,39 +26,22 @@ public class CustomEliminationAsk extends EliminationAsk {
         this.waitTime = waitTime;
     }
 
-    public CustomEliminationAsk() {
-        this.heuristics = HeuristicsTypes.Heuristics.reverse;
-        this.showGraph = false;
-        this.waitTime = 0;
-    }
-
     @Override
     public CategoricalDistribution eliminationAsk(RandomVariable[] X, AssignmentProposition[] e, BayesianNetwork bn) {
-        if (X.length == 0)
-            throw new IllegalArgumentException("Query non valida");
-        if (!bn.getVariablesInTopologicalOrder().containsAll(Arrays.asList(X.clone())))
-            throw new IllegalArgumentException("Variabili non presenti nella rete");
 
         Set<RandomVariable> hidden = new HashSet<>();
         List<RandomVariable> VARS = new ArrayList<>();
         calculateVariables(X, e, bn, hidden, VARS);
 
-        // factors <- []
-        List<Factor> factors = new ArrayList<Factor>();
-        // for each var in ORDER(bn.VARS) do
+        List<Factor> factors = new ArrayList<>();
         for (RandomVariable var : order(bn, VARS)) {
-            // factors <- [MAKE-FACTOR(var, e) | factors]
             factors.add(0, makeFactor(var, e, bn));
         }
 
-        // if var is hidden variable then factors <- SUM-OUT(var, factors)
-        for(RandomVariable var : super.order(bn, hidden)){
-            factors = sumOut(var, factors, bn);
+        for (RandomVariable var : super.order(bn, hidden)) {
+            factors = sumOut(var, factors);
         }
-        // return NORMALIZE(POINTWISE-PRODUCT(factors))
         Factor product = pointwiseProduct(factors);
-        // Note: Want to ensure the order of the product matches the
-        // query variables
         return ((ProbabilityTable) product.pointwiseProductPOS(_identity, X))
                 .normalize();
     }
@@ -73,7 +55,7 @@ public class CustomEliminationAsk extends EliminationAsk {
                     "Elimination-Ask only works with finite Nodes.");
         }
         FiniteNode fn = (FiniteNode) n;
-        List<AssignmentProposition> evidence = new ArrayList<AssignmentProposition>();
+        List<AssignmentProposition> evidence = new ArrayList<>();
         for (AssignmentProposition ap : e) {
             if (fn.getCPT().contains(ap.getTermVariable())) {
                 evidence.add(ap);
@@ -81,7 +63,7 @@ public class CustomEliminationAsk extends EliminationAsk {
         }
 
         return fn.getCPT().getFactorFor(
-                evidence.toArray(new AssignmentProposition[evidence.size()]));
+                evidence.toArray(new AssignmentProposition[0]));
     }
 
     private Factor pointwiseProduct(List<Factor> factors) {
@@ -94,16 +76,13 @@ public class CustomEliminationAsk extends EliminationAsk {
         return product;
     }
 
-    private List<Factor> sumOut(RandomVariable var, List<Factor> factors,
-                                BayesianNetwork bn) {
-        List<Factor> summedOutFactors = new ArrayList<Factor>();
-        List<Factor> toMultiply = new ArrayList<Factor>();
+    private List<Factor> sumOut(RandomVariable var, List<Factor> factors) {
+        List<Factor> summedOutFactors = new ArrayList<>();
+        List<Factor> toMultiply = new ArrayList<>();
         for (Factor f : factors) {
             if (f.contains(var)) {
                 toMultiply.add(f);
             } else {
-                // This factor does not contain the variable
-                // so no need to sum out - see AIMA3e pg. 527.
                 summedOutFactors.add(f);
             }
         }
@@ -140,22 +119,22 @@ public class CustomEliminationAsk extends EliminationAsk {
         mainVariables.addAll(Arrays.asList(X));
         mainVariables.addAll(evidenceVariables);
 
-            // Pruning nodi non antenati di {X U e}
-            hidden.removeAll(notAncestorsOf(mainVariables, bn));
+        // Pruning nodi non antenati di {X U e}
+        hidden.removeAll(notAncestorsOf(mainVariables, bn));
 
-            // Pruning nodi m-separati da X tramite E
-            for (RandomVariable x : X) {
-                for (AssignmentProposition assignmentProposition : e) {
-                    RandomVariable evidence = assignmentProposition.getTermVariable();
+        // Pruning nodi m-separati da X tramite E
+        for (RandomVariable x : X) {
+            for (AssignmentProposition assignmentProposition : e) {
+                RandomVariable evidence = assignmentProposition.getTermVariable();
 
-                    if (hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)))) {
-                        CustomNode n = new CustomNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
-                        ((CustomBayesNet) bn).replaceNode(n);
-                    }
+                if (hidden.removeIf(v -> (isMSeparated(v, x, evidence, bn)))) {
+                    CustomNode n = new CustomNode(evidence, getValuesForEvidence(assignmentProposition.getValue()));
+                    ((CustomBayesNet) bn).replaceNode(n);
                 }
             }
+        }
 
-            bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
+        bnVARS.removeIf(v -> (!mainVariables.contains(v) && !hidden.contains(v)));
     }
 
     private double[] getValuesForEvidence(Object value) {

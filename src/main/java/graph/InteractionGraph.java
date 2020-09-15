@@ -1,4 +1,4 @@
-package utils;
+package graph;
 
 import aima.core.probability.RandomVariable;
 import aima.core.probability.bayes.BayesianNetwork;
@@ -99,11 +99,11 @@ public class InteractionGraph extends SingleGraph {
         return getNode(randomVariable.getName());
     }
 
-    public List<RandomVariable> getOrderedVariables(Boolean showMoralGraph, int delay) {
+    public List<RandomVariable> getOrderedVariables(Boolean showGraph, int delay) {
         ArrayList<RandomVariable> variables = new ArrayList<>();
         Viewer v = null;
 
-        if (showMoralGraph) {
+        if (showGraph) {
             v = display();
             sleepforTime(delay);
         }
@@ -131,12 +131,12 @@ public class InteractionGraph extends SingleGraph {
 
             removeNode(head);
 
-            if (showMoralGraph) {
+            if (showGraph) {
                 sleepforTime(delay);
             }
         }
 
-        if (showMoralGraph) {
+        if (showGraph) {
             v.close();
         }
 

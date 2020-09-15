@@ -5,9 +5,9 @@ import aima.core.probability.bayes.DynamicBayesianNetwork;
 import aima.core.probability.bayes.FiniteNode;
 import aima.core.probability.domain.BooleanDomain;
 import aima.core.probability.util.RandVar;
-import bayes.CustomBayesNet;
-import bayes.CustomDynamicBayesNet;
-import bayes.CustomNode;
+import custom.CustomBayesNet;
+import custom.CustomDynamicBayesNet;
+import custom.CustomNode;
 
 import java.util.HashMap;
 import java.util.HashSet;
